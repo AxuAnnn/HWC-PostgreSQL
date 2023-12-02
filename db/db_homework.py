@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 import ast
+from router.schemas import HomeworkRequestSchema, HomeworkResponseSchema
 from sqlalchemy.orm.session import Session
 from .models import DbHomework
 from .one_table_homework import homework_list
@@ -22,7 +23,7 @@ def db_feed(db: Session):
     db.add_all(new_homework_list)
     db.commit()
     db_items = db.query(DbHomework).all()
-    return db_items
+    return [HomeworkResponseSchema.from_orm(item) for item in db_items]
 
 
 def create(db: Session, request):
@@ -40,7 +41,17 @@ def create(db: Session, request):
     db.add(new_homework)
     db.commit()
     db.refresh(new_homework)
-    return new_homework
+    return HomeworkResponseSchema.from_orm(new_homework)
+
+
+def str2List(homework_records: list):
+    for record in homework_records:
+        if record.skill: 
+            record.skill = ast.literal_eval(record.skill)
+        if record.name: 
+            record.name = ast.literal_eval(record.name)
+
+    return homework_records
 
 
 def get_all(db: Session):
@@ -48,4 +59,21 @@ def get_all(db: Session):
     if not homework:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'Homework not found')
-    return homework
+    return [HomeworkResponseSchema.from_orm(item) for item in homework]
+
+
+
+def get_homework_by_semester(semester: str, db: Session):
+    homework = db.query(DbHomework).filter(DbHomework.semester == semester).all()
+    if not homework:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'Homework with semester = {semester} not found')
+    return [HomeworkResponseSchema.from_orm(item) for item in homework]
+
+
+def get_homework_by_school(school: str, db: Session):
+    homework = db.query(DbHomework).filter(DbHomework.school == school).all()
+    if not homework:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'Homework with school = {school} not found')
+    return [HomeworkResponseSchema.from_orm(item) for item in homework]
