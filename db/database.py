@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./homework.db"
+SQLALCHEMY_DATABASE_URL = "postgreaql://default:V9pO1UWFmoPr@ep-noisy-star-52560209.us-east-1.postgres.vercel-storage.com:5432/verceldb"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
